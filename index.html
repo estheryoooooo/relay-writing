@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이어 쓰기 모험</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#1d2433;--muted:#5b6475;--line:#c9cfdb;--main:#1d4ed8;--mainInk:#fff;--ok:#0f6b3a;--warn:#8a4b00;--warnBg:#fff3dc;--r:12px}
+*{box-sizing:border-box}
+html{font-size:18px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif;line-height:1.55}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:8px;top:-60px;background:#000;color:#fff;padding:8px 12px;border-radius:8px;z-index:9}
+.skip:focus{top:8px}
+:focus-visible{outline:4px solid #f59e0b;outline-offset:2px}
+header.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--card);border-bottom:2px solid var(--line)}
+header.top h1{font-size:1.2rem;margin:0}
+.banner{margin:12px auto;max-width:960px;padding:10px 14px;border:2px solid var(--line);border-radius:var(--r);background:var(--card)}
+.banner.warn{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
+.stepnav{display:flex;flex-wrap:wrap;gap:8px;max-width:960px;margin:8px auto;padding:0 16px;list-style:none}
+.stepnav button{min-height:48px;padding:6px 12px;border:2px solid var(--line);border-radius:var(--r);background:var(--card);font:inherit;cursor:pointer}
+.stepnav button[aria-current="step"]{border-color:var(--main);background:#e6edff;font-weight:700}
+.stepnav button:disabled{opacity:.55;cursor:not-allowed}
+main{max-width:960px;margin:0 auto;padding:8px 16px 48px}
+main:focus{outline:none}
+h2{font-size:1.5rem;margin:.6em 0 .3em}
+h3{font-size:1.15rem;margin:.8em 0 .2em}
+.card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.muted{color:var(--muted);font-size:.9rem}
+.hidden{display:none!important}
+label,.label{display:block;font-weight:700;margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--muted);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:5.5em;resize:vertical}
+input[type=checkbox],input[type=radio]{width:auto;transform:scale(1.4);margin-right:10px}
+.check{display:flex;align-items:flex-start;gap:6px;padding:10px;border:2px solid var(--line);border-radius:10px;margin:8px 0;font-weight:400}
+.btn{min-height:48px;padding:8px 18px;border:2px solid var(--main);border-radius:var(--r);background:var(--main);color:var(--mainInk);font:inherit;font-weight:700;cursor:pointer}
+.btn.secondary{background:#fff;color:var(--main)}
+.btn.danger{background:#fff;color:#a11;border-color:#a11}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.chip{min-height:40px;padding:4px 12px;border:2px dashed var(--muted);border-radius:999px;background:#fff;font:inherit;cursor:pointer}
+.example{border-left:6px solid var(--muted);padding:6px 12px;background:#eef1f7;margin:8px 0;border-radius:0 8px 8px 0}
+.badge{display:inline-block;padding:2px 10px;border:2px solid var(--muted);border-radius:999px;font-size:.85rem;font-weight:700;background:#fff}
+.badge.done::before{content:"✔ "}
+.badge.empty::before{content:"○ "}
+/* Relay: ruled paper, turn banner, sentence dots */
+.turn{font-size:1.8rem;font-weight:800;padding:14px;border:4px solid var(--main);border-radius:var(--r);background:#e6edff;text-align:center}
+.turn.wait{border-style:dashed;background:#fff}
+.dots{font-size:1.6rem;letter-spacing:.2em}
+.paper{background:#fffef8;border:2px solid var(--line);border-radius:var(--r);padding:8px 16px;background-image:repeating-linear-gradient(transparent 0,transparent 2.1rem,#b9c6e6 2.1rem,#b9c6e6 calc(2.1rem + 2px))}
+.paper .line{min-height:2.2rem;line-height:2.1rem;margin:0;padding:0}
+.paper .fixed{font-weight:700}
+.paper .fixed::before{content:"🔒 ";font-weight:400}
+.sent .tag{display:inline-block;margin-right:6px;padding:0 8px;border:1px solid var(--muted);border-radius:6px;font-size:.8rem;background:#fff}
+.verb-flag{text-decoration:underline wavy #b45309;text-underline-offset:4px}
+.verb-flag::after{content:" [Check this verb]";font-size:.75rem;font-weight:700;color:var(--warn)}
+/* Polish: diff and suggestion cards (underline + text label, never color only) */
+.diff ins{text-decoration:underline;text-decoration-thickness:3px;background:#e7f6ec}
+.diff del{text-decoration:line-through;background:#fde8e8}
+.diff .lab{font-size:.75rem;font-weight:700;margin-left:4px;padding:0 6px;border:1px solid var(--ok);border-radius:6px;color:var(--ok);background:#fff}
+.sug-card{border:2px solid var(--line);border-radius:var(--r);padding:12px;margin:10px 0;background:#fff}
+.sug-card[data-decision="accept"]{border-color:var(--ok)}
+.sug-card[data-decision="keep"]{border-color:var(--muted)}
+.compare{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+/* Teacher (Korean) */
+.teacher table{width:100%;border-collapse:collapse;font-size:.95rem}
+.teacher th,.teacher td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.teacher .notice{border-left:6px solid var(--warn);background:var(--warnBg);padding:8px 12px;border-radius:0 8px 8px 0;margin:8px 0}
+@media (max-width:600px){html{font-size:17px}.btn{width:100%}.row .btn{width:auto;flex:1 1 40%}}
+@media print{.top,.stepnav,.btn,.skip,.chips,.banner:not(.keep){display:none!important}body{background:#fff}.card{break-inside:avoid;border-color:#999}}
+</style>
+</head>
+<body>
+<a class="skip" href="#view">본문으로 건너뛰기</a>
+
+<header class="top">
+  <h1>✏️ 이어 쓰기 모험</h1>
+  <div class="row">
+    <span id="modeBadge" class="badge" role="status">불러오는 중…</span>
+    <button id="teacherBtn" class="btn secondary" type="button" lang="ko">교사 화면</button>
+  </div>
+</header>
+
+<!-- app.js가 채우는 영역: 모드 안내, 단계 표시, 본문, 알림 -->
+<div id="banner" class="banner hidden" role="note"></div>
+<nav aria-label="단계"><ol id="stepNav" class="stepnav"></ol></nav>
+<main id="view" tabindex="-1">
+  <noscript><div class="card">이 앱은 JavaScript가 필요해요. 브라우저에서 JavaScript를 켜 주세요.</div></noscript>
+  <div class="card" id="bootMsg">불러오는 중이에요… 이 글이 계속 보이면 새로고침 해 주세요. (app.js 파일이 없나요?)</div>
+</main>
+<div id="live" class="sr-only" aria-live="polite"></div>
+
+<footer class="banner keep" style="max-width:960px">
+  이름이나 개인정보는 쓰지 마세요. 모둠 번호와 Player 번호만 사용해요.
+</footer>
+
+<!-- 클래스 계약: app.js는 위 CSS의 클래스명(.card .btn .chip .turn .dots .paper .line .fixed .sent .tag .diff .sug-card .compare .check .badge .teacher)을 그대로 사용한다. -->
+<script src="app.js"></script>
+<script src="app-relay.js"></script>
+<script src="app-teacher.js"></script>
+<script src="app-manual.js"></script>
+<script src="app-live.js"></script>
+</body>
+</html>
+<!-- END OF FILE index.html -->
